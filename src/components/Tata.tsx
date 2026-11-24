@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { supabaseSiap } from '../lib/supabase'
 
 const MENU = [
@@ -39,6 +39,9 @@ export function Tata() {
               </NavLink>
             ))}
           </nav>
+          <Link to="/admin" className="shrink-0 rounded-md px-2 py-1.5 text-xs font-medium text-white/75 hover:text-white">
+            Bendahara
+          </Link>
         </div>
         <div className="h-0.5 bg-emas" aria-hidden="true" />
       </header>
