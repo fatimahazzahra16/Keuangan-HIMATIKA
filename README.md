@@ -122,8 +122,44 @@ Skrip keluar dengan kode 0 jika semua lulus, 1 jika ada yang gagal, dan 2 jika t
 
 ## 6. Deploy ke Vercel
 
-1. Import repo ini di https://vercel.com/new. Framework terdeteksi sebagai Vite.
-2. Di **Settings > Environment Variables**, isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY`
-   (hanya dua ini, jangan service role key).
-3. Deploy.
-4. Di Supabase, buka **Authentication > URL Configuration** dan isi **Site URL** dengan domain Vercel.
+1. Masuk ke https://vercel.com dengan **Continue with GitHub** memakai akun pemilik repo, lalu buka
+   https://vercel.com/new dan pilih repo `Keuangan-HIMATIKA`. Framework terdeteksi sebagai Vite;
+   build command `npm run build` dan output `dist` tidak perlu diubah.
+2. Sebelum klik Deploy, buka **Environment Variables** dan isi dua variabel ini saja
+   (untuk Production, Preview, dan Development):
+   - `VITE_SUPABASE_URL` = Project URL dari Supabase (**Project Settings > API**)
+   - `VITE_SUPABASE_ANON_KEY` = anon / publishable key dari halaman yang sama
+
+   Jangan pernah memasukkan service role key atau password database ke Vercel.
+3. Klik **Deploy**. Setelah selesai, catat domainnya, misalnya `keuangan-himatika.vercel.app`.
+4. Di Supabase, buka **Authentication > URL Configuration**:
+   - **Site URL**: `https://<domain-vercel>`
+   - **Redirect URLs**: tambahkan `https://<domain-vercel>/**`
+5. Pastikan pendaftaran publik tetap mati (langkah 3). Deploy tidak mengubah pengaturan ini.
+6. Setiap push ke branch `main` otomatis membuat deploy baru. Branch lain dan PR mendapat
+   alamat preview sendiri.
+
+`vercel.json` sudah mengatur: semua alamat halaman diarahkan ke `index.html` (supaya reload di
+`/riwayat` atau `/admin` tidak 404), `sw.js` tidak di-cache browser supaya update cepat sampai,
+file di `/assets` di-cache lama karena namanya berubah setiap build, serta header keamanan dasar
+(`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`).
+
+## 7. Pasang di HP (PWA)
+
+Aplikasi ini bisa dipasang seperti aplikasi biasa:
+
+- **Android (Chrome)**: buka alamat aplikasi, ketuk menu titik tiga, pilih **Instal aplikasi** atau
+  **Tambahkan ke layar utama**.
+- **iPhone (Safari)**: buka alamat aplikasi, ketuk tombol **Bagikan**, pilih
+  **Tambah ke Layar Utama**.
+
+Yang perlu diketahui:
+
+- Tampilan aplikasi (menu, halaman) tersimpan di HP sehingga tetap terbuka walau sinyal hilang.
+  **Data keuangan tidak disimpan di HP**: saldo, transaksi, dan foto bukti selalu diambil langsung
+  dari Supabase. Saat offline muncul pesan kuning "Tidak ada koneksi internet" dan transaksi tidak
+  bisa disimpan sampai koneksi kembali.
+- Foto bukti dan link-nya (signed URL) tidak pernah di-cache.
+- Saat ada versi baru, muncul kartu **"Versi baru aplikasi tersedia"**. Ketuk **Muat ulang** untuk
+  memakai versi terbaru, atau **Nanti** untuk melanjutkan dulu.
+- File untuk ekspor Excel/PDF baru diunduh saat pertama kali dipakai, lalu disimpan di HP.

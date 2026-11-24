@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { supabaseSiap } from '../lib/supabase'
+import { StatusAplikasi } from './StatusAplikasi'
 
 const MENU = [
   { ke: '/', label: 'Beranda', ikon: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z' },
@@ -47,6 +48,7 @@ export function Tata() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-4">
+        <StatusAplikasi />
         {!supabaseSiap && (
           <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             Koneksi Supabase belum diatur. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di .env.local.
