@@ -78,7 +78,7 @@ export default function DaftarAdmin() {
         opsi={[
           { nilai: 'semua', label: 'Semua' },
           { nilai: 'kas', label: 'Kas HIMA' },
-          { nilai: 'dipa', label: 'Dana DIPA' },
+          { nilai: 'dipa', label: 'Dana Dipa' },
         ]}
       />
 

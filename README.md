@@ -6,7 +6,7 @@ Bendahara mencatat transaksi lewat halaman admin, dan siapa pun bisa melihat lap
 Ada dua buku yang terpisah:
 
 - **Kas HIMA**: uang kas himpunan.
-- **Dana DIPA**: dana dari fakultas.
+- **Dana Dipa**: dana pemberian kampus atau fakultas yang dipegang Dipa (bukan singkatan anggaran DIPA). Di database bukunya bernama `dipa`.
 
 Stack: Vite + React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), PWA, deploy di Vercel.
 
@@ -67,8 +67,9 @@ Lupa password: buka **Authentication > Users**, pilih akunnya, lalu kirim reset 
 ### Halaman bendahara
 
 - **Transaksi** (`/admin`): daftar semua transaksi, filter per buku, penanda "Tanpa bukti" untuk yang belum ada fotonya.
-- **Catat baru** (`/admin/baru`): pilih buku (Kas HIMA atau Dana DIPA), jenis (masuk, keluar, pindah), tanggal, jumlah, kas, kategori atau kas tujuan, proker (opsional), keterangan, dan sampai 5 foto bukti.
+- **Catat baru** (`/admin/baru`): pilih buku (Kas HIMA atau Dana Dipa), jenis (masuk, keluar, pindah), tanggal, jumlah, kas, kategori atau kas tujuan, proker (opsional), keterangan, dan sampai 5 foto bukti.
 - **Ubah** (`/admin/transaksi/<id>`): ubah isian, tambah atau hapus foto, atau hapus transaksi.
+- **Master data** (`/admin/master`): tambah, ubah, arsipkan, atau hapus kas, kategori, dan proker per buku. Data yang sudah dipakai transaksi tidak bisa dihapus, cukup diarsipkan supaya tidak muncul lagi di pilihan form. Buku tidak bisa diganti setelah data dibuat. Mengubah saldo awal kas langsung menggeser saldo berjalan.
 - Foto dikecilkan di browser (sisi terpanjang 1600 px, sekitar 600 KB, JPEG) lalu disimpan di bucket `bukti` yang private. Foto hanya tampil lewat signed URL yang berlaku 60 detik dan tidak pernah muncul di halaman publik.
 
 ## 3. Matikan pendaftaran publik

@@ -77,7 +77,7 @@ export interface Opsi<T extends string> {
   label: string
 }
 
-/** Tombol pilihan bersebelahan (misalnya Semua / Kas HIMA / Dana DIPA). */
+/** Tombol pilihan bersebelahan (misalnya Semua / Kas HIMA / Dana Dipa). */
 export function PilihanSegmen<T extends string>({
   opsi,
   nilai,

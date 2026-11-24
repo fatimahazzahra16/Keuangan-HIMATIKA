@@ -1,4 +1,5 @@
 import imageCompression from 'browser-image-compression'
+import { pesanGalatMaster, type JenisKas, type StatusProker } from './masterData'
 import { MAKS_BUKTI, keBaris, pathBukti, pesanGalat, type IsianTransaksi, type Referensi } from './formTransaksi'
 import { supabase } from './supabase'
 import type { Buku, JenisTransaksi } from './types'
@@ -139,4 +140,80 @@ export async function urlBukti(path: string): Promise<string> {
 export async function masuk(email: string, password: string): Promise<void> {
   const { error } = await supabase().auth.signInWithPassword({ email: email.trim(), password })
   if (error) throw new Error(pesanGalat(error.message))
+}
+
+// ---------- Master data (kas, kategori, proker) ----------
+
+export interface KasMaster {
+  id: string
+  buku: Buku
+  nama: string
+  jenis: JenisKas
+  saldo_awal: number
+  aktif: boolean
+  urutan: number
+  saldo: number
+}
+export interface KategoriMaster {
+  id: string
+  buku: Buku
+  nama: string
+  berlaku: 'masuk' | 'keluar'
+  aktif: boolean
+  urutan: number
+}
+export interface ProkerMaster {
+  id: string
+  buku: Buku
+  nama: string
+  tanggal_mulai: string
+  tanggal_selesai: string | null
+  status: StatusProker
+}
+export interface MasterData {
+  kas: KasMaster[]
+  kategori: KategoriMaster[]
+  proker: ProkerMaster[]
+}
+
+function pastikanMaster<T>(hasil: { data: T | null; error: { message: string } | null }): T {
+  if (hasil.error) throw new Error(pesanGalatMaster(hasil.error.message) ?? pesanGalat(hasil.error.message))
+  return hasil.data as T
+}
+
+export async function ambilMasterData(): Promise<MasterData> {
+  const db = supabase()
+  const [kas, saldo, kategori, proker] = await Promise.all([
+    db.from('kas').select('id,buku,nama,jenis,saldo_awal,aktif,urutan').order('urutan').order('nama'),
+    db.from('v_kas_publik').select('id,saldo'),
+    db.from('kategori').select('id,buku,nama,berlaku,aktif,urutan').order('berlaku').order('urutan').order('nama'),
+    db.from('proker').select('id,buku,nama,tanggal_mulai,tanggal_selesai,status').order('tanggal_mulai', { ascending: false }).order('nama'),
+  ])
+  const peta = new Map((pastikanMaster(saldo) as { id: string; saldo: number }[]).map((s) => [s.id, Number(s.saldo)]))
+  return {
+    kas: (pastikanMaster(kas) as Omit<KasMaster, 'saldo'>[]).map((k) => ({ ...k, saldo: peta.get(k.id) ?? k.saldo_awal })),
+    kategori: pastikanMaster(kategori) as KategoriMaster[],
+    proker: pastikanMaster(proker) as ProkerMaster[],
+  }
+}
+
+export type TabelMaster = 'kas' | 'kategori' | 'proker'
+
+/** Simpan satu baris master data. Tanpa id = buat baru. */
+export async function simpanMaster(tabel: TabelMaster, baris: Record<string, unknown>, id?: string): Promise<void> {
+  const db = supabase()
+  if (id) pastikanMaster(await db.from(tabel).update(baris).eq('id', id).select('id').single())
+  else pastikanMaster(await db.from(tabel).insert(baris).select('id').single())
+}
+
+/** Arsipkan atau aktifkan lagi. Kas/kategori pakai kolom aktif, proker pakai status. */
+export async function aturArsip(tabel: TabelMaster, id: string, arsip: boolean): Promise<void> {
+  const baris = tabel === 'proker' ? { status: arsip ? 'arsip' : 'aktif' } : { aktif: !arsip }
+  pastikanMaster(await supabase().from(tabel).update(baris).eq('id', id).select('id').single())
+}
+
+/** Hapus permanen. Database menolak kalau data sudah dipakai transaksi. */
+export async function hapusMaster(tabel: TabelMaster, id: string): Promise<void> {
+  const res = pastikanMaster(await supabase().from(tabel).delete().eq('id', id).select('id')) as { id: string }[]
+  if (res.length === 0) throw new Error('Data tidak ditemukan. Mungkin sudah dihapus.')
 }

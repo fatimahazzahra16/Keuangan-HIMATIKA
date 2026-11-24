@@ -29,7 +29,7 @@ export default function Beranda() {
       <section className="rounded-xl bg-primer p-4 text-white shadow-sm">
         <p className="text-sm text-white/80">Total saldo semua buku</p>
         <p className="mt-1 text-3xl font-bold tabular-nums">{formatRupiah(total)}</p>
-        <p className="mt-1 text-xs text-white/70">Kas HIMA dan Dana DIPA dicatat terpisah. Rinciannya ada di bawah.</p>
+        <p className="mt-1 text-xs text-white/70">Kas HIMA dan Dana Dipa (dana dari kampus atau fakultas yang dipegang Dipa) dicatat terpisah. Rinciannya ada di bawah.</p>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">

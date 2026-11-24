@@ -80,7 +80,7 @@ export default function Laporan() {
             <Bidang label="Buku">
               <select className={kelasInput} value={buku} onChange={(e) => ubah({ buku: e.target.value === 'kas' ? null : e.target.value, kas: null })}>
                 <option value="kas">Kas HIMA</option>
-                <option value="dipa">Dana DIPA</option>
+                <option value="dipa">Dana Dipa</option>
               </select>
             </Bidang>
             <Bidang label="Kas">
