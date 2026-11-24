@@ -1,15 +1,18 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Bidang, Galat, JudulBagian, Kartu, Kosong, Memuat, PilihanSegmen, kelasInput } from '../components/ui'
 import { ambilKas, ambilProker, ambilTransaksiBukuSampai, ambilTransaksiProker } from '../lib/api'
-import { formatRupiah, formatTanggal, formatTanggalPendek, rentangBulanIni } from '../lib/format'
+import { ambilBuktiLaporan, MAKS_LAMPIRAN_PDF } from '../lib/adminApi'
+import { muatGambar, namaBerkas, susunDokumen, unduhBlob, type InfoLaporan } from '../lib/ekspor'
+import { formatRupiah, formatTanggal, formatTanggalPendek, hariIniJakarta, rentangBulanIni } from '../lib/format'
 import { laporanPeriode, laporanProker, type Laporan as DataLaporan, type RekapKategori } from '../lib/laporan'
 import { NAMA_BUKU, type Buku } from '../lib/types'
 import { useMuat } from '../lib/useMuat'
 
 type Mode = 'periode' | 'proker'
 
-export default function Laporan() {
+/** `admin`: versi bendahara, PDF boleh menyertakan foto bukti sebagai lampiran. */
+export default function Laporan({ admin = false }: { admin?: boolean }) {
   const [params, setParams] = useSearchParams()
   const [awalBulan, akhirBulan] = rentangBulanIni()
   const mode: Mode = params.get('mode') === 'proker' ? 'proker' : 'periode'
@@ -55,15 +58,27 @@ export default function Laporan() {
     })
   }, [mode, buku, kasId, dari, sampai, prokerId, rentangSalah])
 
-  const judul = useMemo(() => {
-    if (mode === 'proker') return proker ? `Proker ${proker.nama} (${NAMA_BUKU[proker.buku]})` : ''
+  const info = useMemo((): Omit<InfoLaporan, 'dibuat'> => {
+    if (mode === 'proker') {
+      if (!proker) return { judul: '', periode: '', proker: true, perKas: false }
+      const periode = proker.tanggal_selesai
+        ? `${formatTanggal(proker.tanggal_mulai)} sampai ${formatTanggal(proker.tanggal_selesai)}`
+        : `Mulai ${formatTanggal(proker.tanggal_mulai)}`
+      return { judul: `Laporan Proker ${proker.nama} (${NAMA_BUKU[proker.buku]})`, periode, proker: true, perKas: false }
+    }
     const namaKas = kasBuku.find((k) => k.id === kasId)?.nama
-    return `${NAMA_BUKU[buku]}${namaKas ? `, ${namaKas}` : ''}: ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}`
+    return {
+      judul: `Laporan ${NAMA_BUKU[buku]}${namaKas ? `, ${namaKas}` : ''}`,
+      periode: `${formatTanggal(dari)} sampai ${formatTanggal(sampai)}`,
+      proker: false,
+      perKas: Boolean(kasId),
+    }
   }, [mode, proker, kasBuku, kasId, buku, dari, sampai])
+  const judul = info.judul ? `${info.judul}: ${info.periode}` : ''
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold text-navy">Laporan</h1>
+      <h1 className="text-lg font-bold text-navy">{admin ? 'Laporan bendahara' : 'Laporan'}</h1>
 
       <Kartu className="space-y-3">
         <PilihanSegmen<Mode>
@@ -134,7 +149,10 @@ export default function Laporan() {
       ) : hasil.memuat || !hasil.data ? (
         <Memuat baris={5} />
       ) : (
-        <IsiLaporan lap={hasil.data} judul={judul} perKas={mode === 'periode' && Boolean(kasId)} proker={mode === 'proker'} />
+        <>
+          <Ekspor lap={hasil.data} info={info} admin={admin} />
+          <IsiLaporan lap={hasil.data} judul={judul} perKas={mode === 'periode' && Boolean(kasId)} proker={mode === 'proker'} />
+        </>
       )}
     </div>
   )
@@ -255,4 +273,89 @@ function Rekap({ judul, isi, warna }: { judul: string; isi: RekapKategori[]; war
       )}
     </Kartu>
   )
+}
+
+type Format = 'xlsx' | 'pdf'
+
+function Ekspor({ lap, info, admin }: { lap: DataLaporan; info: Omit<InfoLaporan, 'dibuat'>; admin: boolean }) {
+  const [proses, setProses] = useState<Format | null>(null)
+  const [status, setStatus] = useState('')
+  const [galat, setGalat] = useState<string | null>(null)
+  const [denganFoto, setDenganFoto] = useState(false)
+
+  async function unduh(format: Format) {
+    setProses(format)
+    setGalat(null)
+    setStatus('')
+    try {
+      const lengkap: InfoLaporan = { ...info, dibuat: hariIniJakarta() }
+      const dok = susunDokumen(lap, lengkap)
+      let blob: Blob
+      if (format === 'xlsx') {
+        const { buatExcel } = await import('../lib/eksporExcel')
+        blob = await buatExcel(dok)
+      } else {
+        const { buatPdf } = await import('../lib/eksporPdf')
+        const lampiran = admin && denganFoto ? await siapkanLampiran(lap, setStatus) : []
+        setStatus(lampiran.length > 0 ? `Menyusun PDF dengan ${lampiran.length} foto...` : '')
+        blob = await buatPdf(dok, lampiran)
+      }
+      unduhBlob(blob, namaBerkas(lengkap.judul, lengkap.dibuat, format))
+      setStatus('Berkas sudah diunduh.')
+    } catch (e) {
+      setStatus('')
+      setGalat(`Gagal membuat berkas. ${e instanceof Error ? e.message : String(e)}`)
+    } finally {
+      setProses(null)
+    }
+  }
+
+  const tombol =
+    'flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-60 sm:flex-none'
+  return (
+    <Kartu className="space-y-2">
+      <div className="flex gap-2">
+        <button type="button" onClick={() => unduh('xlsx')} disabled={proses !== null} className={`${tombol} bg-navy text-white hover:bg-navy/90`}>
+          {proses === 'xlsx' ? 'Menyiapkan...' : 'Unduh Excel'}
+        </button>
+        <button type="button" onClick={() => unduh('pdf')} disabled={proses !== null} className={`${tombol} bg-primer text-white hover:bg-primer-gelap`}>
+          {proses === 'pdf' ? 'Menyiapkan...' : 'Unduh PDF'}
+        </button>
+      </div>
+      {admin && (
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input type="checkbox" className="mt-0.5 size-4 accent-primer" checked={denganFoto} onChange={(e) => setDenganFoto(e.target.checked)} />
+          <span>
+            Sertakan foto bukti di PDF sebagai lampiran (untuk LPJ). Maksimal {MAKS_LAMPIRAN_PDF} foto.
+          </span>
+        </label>
+      )}
+      {!admin && <p className="text-xs text-slate-500">Berkas berisi kop, rincian transaksi, ringkasan, dan rekap per kategori. Tanpa foto bukti.</p>}
+      {status && <p className="text-xs text-slate-600" role="status">{status}</p>}
+      {galat && <Galat pesan={galat} />}
+    </Kartu>
+  )
+}
+
+/** Unduh foto bukti transaksi di laporan, urut seperti tabel. Foto yang gagal dimuat dilewati dan disebut di keterangan. */
+async function siapkanLampiran(lap: DataLaporan, lapor: (s: string) => void) {
+  lapor('Mengambil daftar foto bukti...')
+  const bukti = await ambilBuktiLaporan(lap.baris.map((b) => b.id))
+  const perId = new Map(lap.baris.map((b) => [b.id, b]))
+  const hasil: { keterangan: string; data: string; lebar: number; tinggi: number }[] = []
+  let gagal = 0
+  for (const [i, f] of bukti.entries()) {
+    lapor(`Mengunduh foto ${i + 1} dari ${bukti.length}...`)
+    const b = perId.get(f.transaksi_id)
+    try {
+      const g = await muatGambar(f.url)
+      const nominal = b ? formatRupiah(b.masuk || b.keluar) : ''
+      const teks = b ? `Transaksi no. ${b.no}, ${formatTanggal(b.tanggal)}, ${b.keterangan.trim() || b.kategori}, ${nominal}. Foto ${f.urutan + 1}.` : ''
+      hasil.push({ keterangan: teks, ...g })
+    } catch {
+      gagal += 1
+    }
+  }
+  if (gagal > 0) lapor(`${gagal} foto gagal diunduh dan tidak dilampirkan.`)
+  return hasil
 }

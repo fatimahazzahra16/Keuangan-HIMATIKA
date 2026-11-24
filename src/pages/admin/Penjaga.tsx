@@ -2,6 +2,13 @@ import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Kartu, Memuat } from '../../components/ui'
 import { useSesi } from '../../lib/auth'
 
+const MENU = [
+  { ke: '/admin', label: 'Transaksi' },
+  { ke: '/admin/baru', label: 'Catat baru' },
+  { ke: '/admin/laporan', label: 'Laporan' },
+  { ke: '/admin/master', label: 'Master data' },
+] as const
+
 /** Hanya admin yang bisa melihat halaman di dalamnya. Tamu diarahkan ke halaman masuk. */
 export function PenjagaAdmin() {
   const { status, email, galat, keluar } = useSesi()
@@ -28,32 +35,19 @@ export function PenjagaAdmin() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-navy-muda px-3 py-2">
-        <nav className="flex gap-1" aria-label="Menu bendahara">
-          <NavLink
-            to="/admin"
-            end
-            className={({ isActive }) =>
-              `rounded-md px-3 py-1.5 text-sm font-medium ${isActive ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-navy'}`
-            }
-          >
-            Transaksi
-          </NavLink>
-          <NavLink
-            to="/admin/baru"
-            className={({ isActive }) =>
-              `rounded-md px-3 py-1.5 text-sm font-medium ${isActive ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-navy'}`
-            }
-          >
-            Catat baru
-          </NavLink>
-          <NavLink
-            to="/admin/master"
-            className={({ isActive }) =>
-              `rounded-md px-3 py-1.5 text-sm font-medium ${isActive ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-navy'}`
-            }
-          >
-            Master data
-          </NavLink>
+        <nav className="flex w-full gap-1 sm:w-auto" aria-label="Menu bendahara">
+          {MENU.map((m) => (
+            <NavLink
+              key={m.ke}
+              to={m.ke}
+              end={m.ke === '/admin'}
+              className={({ isActive }) =>
+                `flex-1 whitespace-nowrap rounded-md px-1.5 py-1.5 text-center text-[13px] font-medium sm:flex-none sm:px-3 sm:text-sm ${isActive ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-navy'}`
+              }
+            >
+              {m.label}
+            </NavLink>
+          ))}
         </nav>
         <div className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
           <span className="truncate" title={email ?? ''}>

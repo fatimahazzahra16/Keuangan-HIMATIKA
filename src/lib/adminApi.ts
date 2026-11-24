@@ -137,6 +137,42 @@ export async function urlBukti(path: string): Promise<string> {
   return data.signedUrl
 }
 
+/** Batas foto bukti di satu PDF, supaya berkas tidak terlalu besar di HP. */
+export const MAKS_LAMPIRAN_PDF = 100
+
+export interface BuktiLaporan {
+  transaksi_id: string
+  urutan: number
+  url: string
+}
+
+/**
+ * Signed URL semua foto bukti untuk sekumpulan transaksi (untuk lampiran PDF bendahara).
+ * Diambil per 100 id supaya URL query tidak terlalu panjang. Urutan mengikuti `ids`, lalu urutan foto.
+ */
+export async function ambilBuktiLaporan(ids: string[]): Promise<BuktiLaporan[]> {
+  const db = supabase()
+  const baris: { transaksi_id: string; storage_path: string; urutan: number }[] = []
+  for (let i = 0; i < ids.length; i += 100) {
+    const res = await db.from('bukti').select('transaksi_id,storage_path,urutan').in('transaksi_id', ids.slice(i, i + 100))
+    baris.push(...(pastikan(res) as typeof baris))
+  }
+  if (baris.length === 0) return []
+  const posisi = new Map(ids.map((id, i) => [id, i]))
+  baris.sort((a, b) => (posisi.get(a.transaksi_id) ?? 0) - (posisi.get(b.transaksi_id) ?? 0) || a.urutan - b.urutan)
+  const dipakai = baris.slice(0, MAKS_LAMPIRAN_PDF)
+  // Umur sedikit lebih panjang dari tampilan biasa karena semua foto diunduh berurutan.
+  const { data, error } = await db.storage.from(BUCKET).createSignedUrls(
+    dipakai.map((b) => b.storage_path),
+    UMUR_URL_BUKTI * 5,
+  )
+  if (error) throw new Error(pesanGalat(error.message))
+  return dipakai.flatMap((b, i) => {
+    const url = data[i]?.signedUrl
+    return url ? [{ transaksi_id: b.transaksi_id, urutan: b.urutan, url }] : []
+  })
+}
+
 export async function masuk(email: string, password: string): Promise<void> {
   const { error } = await supabase().auth.signInWithPassword({ email: email.trim(), password })
   if (error) throw new Error(pesanGalat(error.message))
