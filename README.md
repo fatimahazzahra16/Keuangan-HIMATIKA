@@ -51,7 +51,25 @@ Stack: Vite + React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage),
    insert into public.admins (user_id) values ('<USER UID>');
    ```
 
-Hanya akun yang ada di tabel `admins` yang bisa menulis data. Untuk mencabut akses admin, hapus barisnya dari tabel itu.
+   Atau, tanpa menyalin UID:
+
+   ```sql
+   insert into public.admins (user_id)
+   select id from auth.users where email = '<email bendahara>';
+   ```
+
+4. Buka `/admin/masuk` di aplikasi (atau tautan **Bendahara** di pojok kanan atas), lalu masuk dengan email dan password tadi.
+
+Hanya akun yang ada di tabel `admins` yang bisa menulis data. Akun yang bisa login tapi belum ada di tabel itu akan melihat pesan "Akun belum terdaftar sebagai bendahara". Untuk mencabut akses admin, hapus barisnya dari tabel itu.
+
+Lupa password: buka **Authentication > Users**, pilih akunnya, lalu kirim reset password atau atur password baru dari dashboard. Aplikasi sengaja tidak punya halaman daftar atau reset sendiri.
+
+### Halaman bendahara
+
+- **Transaksi** (`/admin`): daftar semua transaksi, filter per buku, penanda "Tanpa bukti" untuk yang belum ada fotonya.
+- **Catat baru** (`/admin/baru`): pilih buku (Kas HIMA atau Dana DIPA), jenis (masuk, keluar, pindah), tanggal, jumlah, kas, kategori atau kas tujuan, proker (opsional), keterangan, dan sampai 5 foto bukti.
+- **Ubah** (`/admin/transaksi/<id>`): ubah isian, tambah atau hapus foto, atau hapus transaksi.
+- Foto dikecilkan di browser (sisi terpanjang 1600 px, sekitar 600 KB, JPEG) lalu disimpan di bucket `bukti` yang private. Foto hanya tampil lewat signed URL yang berlaku 60 detik dan tidak pernah muncul di halaman publik.
 
 ## 3. Matikan pendaftaran publik
 
