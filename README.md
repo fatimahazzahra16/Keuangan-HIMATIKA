@@ -70,6 +70,8 @@ Lupa password: buka **Authentication > Users**, pilih akunnya, lalu kirim reset 
 - **Catat baru** (`/admin/baru`): pilih buku (Kas HIMA atau Dana Dipa), jenis (masuk, keluar, pindah), tanggal, jumlah, kas, kategori atau kas tujuan, proker (opsional), keterangan, dan sampai 5 foto bukti.
 - **Ubah** (`/admin/transaksi/<id>`): ubah isian, tambah atau hapus foto, atau hapus transaksi.
 - **Master data** (`/admin/master`): tambah, ubah, arsipkan, atau hapus kas, kategori, dan proker per buku. Data yang sudah dipakai transaksi tidak bisa dihapus, cukup diarsipkan supaya tidak muncul lagi di pilihan form. Buku tidak bisa diganti setelah data dibuat. Mengubah saldo awal kas langsung menggeser saldo berjalan.
+- **Laporan** (`/admin/laporan`): sama dengan laporan publik (per periode atau per proker), ditambah tombol **Unduh Excel** dan **Unduh PDF**. PDF versi bendahara bisa melampirkan foto bukti transaksi di laporan itu (centang "Sertakan foto bukti", maksimal 100 foto) untuk LPJ.
+- Laporan publik (`/laporan`) juga punya tombol Excel dan PDF, tanpa foto bukti. Isi berkas: kop (logo, nama HIMATIKA, judul, periode atau proker), tabel No, Tanggal, Keterangan, Kategori, Kas, Masuk, Keluar, Saldo berjalan (Selisih berjalan untuk proker), ringkasan saldo dan rekap per kategori.
 - Foto dikecilkan di browser (sisi terpanjang 1600 px, sekitar 600 KB, JPEG) lalu disimpan di bucket `bukti` yang private. Foto hanya tampil lewat signed URL yang berlaku 60 detik dan tidak pernah muncul di halaman publik.
 
 ## 3. Matikan pendaftaran publik

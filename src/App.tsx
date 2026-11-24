@@ -25,6 +25,7 @@ export default function App() {
               <Route index element={<DaftarAdmin />} />
               <Route path="baru" element={<FormTransaksi />} />
               <Route path="transaksi/:id" element={<FormTransaksi />} />
+              <Route path="laporan" element={<Laporan admin />} />
               <Route path="master" element={<MasterDataAdmin />} />
               <Route path="*" element={<AdminTidakDitemukan />} />
             </Route>
