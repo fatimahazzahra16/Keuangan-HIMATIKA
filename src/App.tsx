@@ -7,6 +7,7 @@ import { TidakDitemukan } from './pages/Lain'
 import Riwayat from './pages/Riwayat'
 import DaftarAdmin from './pages/admin/Daftar'
 import FormTransaksi from './pages/admin/Form'
+import MasterDataAdmin from './pages/admin/Master'
 import Masuk from './pages/admin/Masuk'
 import { AdminTidakDitemukan, PenjagaAdmin } from './pages/admin/Penjaga'
 
@@ -24,6 +25,7 @@ export default function App() {
               <Route index element={<DaftarAdmin />} />
               <Route path="baru" element={<FormTransaksi />} />
               <Route path="transaksi/:id" element={<FormTransaksi />} />
+              <Route path="master" element={<MasterDataAdmin />} />
               <Route path="*" element={<AdminTidakDitemukan />} />
             </Route>
             <Route path="*" element={<TidakDitemukan />} />

@@ -4,7 +4,7 @@ export type ArahKategori = 'masuk' | 'keluar'
 
 export const NAMA_BUKU: Record<Buku, string> = {
   kas: 'Kas HIMA',
-  dipa: 'Dana DIPA',
+  dipa: 'Dana Dipa',
 }
 
 /** Baris dari view v_kas_publik (saldo dihitung di database). */

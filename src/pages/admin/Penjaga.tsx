@@ -46,6 +46,14 @@ export function PenjagaAdmin() {
           >
             Catat baru
           </NavLink>
+          <NavLink
+            to="/admin/master"
+            className={({ isActive }) =>
+              `rounded-md px-3 py-1.5 text-sm font-medium ${isActive ? 'bg-white text-navy shadow-sm' : 'text-slate-600 hover:text-navy'}`
+            }
+          >
+            Master data
+          </NavLink>
         </nav>
         <div className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
           <span className="truncate" title={email ?? ''}>

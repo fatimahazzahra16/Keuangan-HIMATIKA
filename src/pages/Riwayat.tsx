@@ -127,7 +127,7 @@ export default function Riwayat() {
           opsi={[
             { nilai: '', label: 'Semua' },
             { nilai: 'kas', label: 'Kas HIMA' },
-            { nilai: 'dipa', label: 'Dana DIPA' },
+            { nilai: 'dipa', label: 'Dana Dipa' },
           ]}
         />
         <div className="flex gap-2">
@@ -168,7 +168,7 @@ export default function Riwayat() {
                 <option value="">Semua kas</option>
                 {kasPilihan.map((k) => (
                   <option key={k.id} value={k.id}>
-                    {filter.buku ? k.nama : `${k.nama} (${k.buku === 'kas' ? 'HIMA' : 'DIPA'})`}
+                    {filter.buku ? k.nama : `${k.nama} (${k.buku === 'kas' ? 'HIMA' : 'Dipa'})`}
                   </option>
                 ))}
               </select>
@@ -184,7 +184,7 @@ export default function Riwayat() {
                 {kategoriPilihan.map((k) => (
                   <option key={k.id} value={k.id}>
                     {k.nama} ({k.berlaku}
-                    {filter.buku ? '' : `, ${k.buku === 'kas' ? 'HIMA' : 'DIPA'}`})
+                    {filter.buku ? '' : `, ${k.buku === 'kas' ? 'HIMA' : 'Dipa'}`})
                   </option>
                 ))}
               </select>
