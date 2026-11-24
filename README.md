@@ -10,6 +10,8 @@ Ada dua buku yang terpisah:
 
 Stack: Vite + React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), PWA, deploy di Vercel.
 
+Alamat aplikasi: **https://keuangan-himatika.vercel.app** (laporan publik di halaman utama, admin di `/admin`).
+
 ## Keamanan singkat
 
 - Row Level Security aktif di semua tabel.
@@ -131,10 +133,12 @@ Skrip keluar dengan kode 0 jika semua lulus, 1 jika ada yang gagal, dan 2 jika t
    - `VITE_SUPABASE_ANON_KEY` = anon / publishable key dari halaman yang sama
 
    Jangan pernah memasukkan service role key atau password database ke Vercel.
-3. Klik **Deploy**. Setelah selesai, catat domainnya, misalnya `keuangan-himatika.vercel.app`.
+3. Klik **Deploy**. Domain project ini `keuangan-himatika.vercel.app`.
+   Kalau Vercel meminta kode verifikasi lewat email saat deploy dari dashboard, isi kodenya dari
+   email pemilik akun. Deploy dari push ke `main` tidak memerlukan kode ini.
 4. Di Supabase, buka **Authentication > URL Configuration**:
-   - **Site URL**: `https://<domain-vercel>`
-   - **Redirect URLs**: tambahkan `https://<domain-vercel>/**`
+   - **Site URL**: `https://keuangan-himatika.vercel.app`
+   - **Redirect URLs**: tambahkan `https://keuangan-himatika.vercel.app/**`
 5. Pastikan pendaftaran publik tetap mati (langkah 3). Deploy tidak mengubah pengaturan ini.
 6. Setiap push ke branch `main` otomatis membuat deploy baru. Branch lain dan PR mendapat
    alamat preview sendiri.
